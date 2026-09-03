@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 name: my-aurora-custom
-description: 个人定制纯净工作站 (VSCode RPM / 按需Libvirt / Rime / Waydroid / 外部存储工具 / Flatpak游戏环境)
+description: 个人定制纯净工作站 (VSCode RPM / 按需Libvirt / Rime / Waydroid / Flatpak游戏环境)
 base-image: ghcr.io/ublue-os/aurora-nvidia-open
 image-version: latest
 
@@ -19,7 +19,7 @@ modules:
         gpgkey=https://packages.microsoft.com/keys/microsoft.asc
         EOF
 
-  # 2. 官方标准 dnf 模块声明安装所有 RPM 包
+  # 2. 官方标准 dnf 模块声明安装 RPM 包（已移除 Debian 专属包名及基础镜像已内置的包）
   - type: dnf
     install:
       packages:
@@ -32,20 +32,12 @@ modules:
         - virt-manager
         - virt-install
         - edk2-ovmf
-        # 中文输入法组件
+        # 中文输入法组件 (自动拉取 Fedora 下所有 Rime 基础依赖)
         - fcitx5-rime
-        - rime-data
-        # 外部文件系统与 Btrfs 维护工具
-        - ntfs-3g
-        - dosfstools
-        - exfatprogs
-        - compsize
-        # Waydroid 容器与轻量合成器 (Fedora 官方主仓库原生提供)
+        # Waydroid 容器与轻量合成器
         - waydroid
         - cage
         - wlr-randr
-        # 游戏性能调度
-        - gamemode
 
   # 3. 系统服务状态调优
   - type: systemd
@@ -57,7 +49,7 @@ modules:
         - libvirtd.service           # 禁用虚拟化全量服务开机常驻
         - waydroid-container.service # 禁用 Waydroid 容器开机常驻，按需启动
 
-  # 4. 预装沙箱化 Flatpak 应用 (采用官方标准结构)
+  # 4. 预装沙箱化 Flatpak 应用
   - type: default-flatpaks
     configurations:
       - scope: system
