@@ -1,11 +1,11 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 name: my-aurora-custom
-description: 个人定制纯净工作站 (VSCode RPM / 按需Libvirt / Rime / Waydroid / 外部存储工具)
+description: 个人定制纯净工作站 (VSCode RPM / 按需Libvirt / Rime / Waydroid / 外部存储工具 / Flatpak游戏环境)
 base-image: ghcr.io/ublue-os/aurora-nvidia-open
 image-version: latest
 
 modules:
-  # 1. 预先导入微软 GPG 公钥并写入 VS Code 软件源（确保签名校验通过）
+  # 1. 独立安装第三方源软件：VS Code (显式导入微软官方 GPG 密钥以通过安全校验)
   - type: script
     snippets:
       - |
@@ -14,24 +14,23 @@ modules:
         [code]
         name=Visual Studio Code
         baseurl=https://packages.microsoft.com/yumrepos/vscode
-        enabled=1
+        enabled=0
         gpgcheck=1
         gpgkey=https://packages.microsoft.com/keys/microsoft.asc
         EOF
+        dnf5 -y install --enablerepo=code code
 
-  # 2. 安装宿主底层 RPM 软件包
+  # 2. 安装 Fedora 官方源系统底层 RPM 包
   - type: rpm-ostree
     install:
-      # 原生开发工具
-      - code
-      # KVM / QEMU / Libvirt 虚拟化套件（已移除废弃的 bridge-utils）
+      # KVM / QEMU / Libvirt 虚拟化套件（现代系统已由内核与 NetworkManager 原生接管网桥，无需废弃的 bridge-utils）
       - qemu-kvm
       - libvirt
       - libvirt-daemon-kvm
       - virt-manager
       - virt-install
       - edk2-ovmf
-      # 中文输入法组件
+      # 中文输入法组件（补充 Rime 引擎及词库数据）
       - fcitx5-rime
       - rime-data
       # 外部文件系统与 Btrfs 维护工具
@@ -39,7 +38,7 @@ modules:
       - dosfstools
       - exfatprogs
       - compsize
-      # Waydroid 容器与轻量合成器
+      # Waydroid 容器与轻量合成器（Fedora 官方原生收录）
       - waydroid
       - cage
       - wlr-randr
@@ -50,19 +49,19 @@ modules:
   - type: systemd
     system:
       enabled:
-        - libvirtd.socket            # 虚拟化按需 Socket 监听
+        - libvirtd.socket            # 虚拟化按需 Socket 监听，启动虚拟机时自动拉起
         - gamemoded.service
       disabled:
-        - libvirtd.service           # 禁用全量守护进程开机常驻
-        - waydroid-container.service # 禁用 Waydroid 后台开机常驻
+        - libvirtd.service           # 禁用虚拟化全量服务常驻
+        - waydroid-container.service # 禁用 Waydroid 容器开机常驻，按需启动
 
-  # 4. 预装 Flatpak 应用
+  # 4. 预装沙箱化 Flatpak 应用
   - type: default-flatpaks
     system:
       install:
-        - com.valvesoftware.Steam
-        - com.usebottles.bottles
-        - com.github.tchx84.Flatseal
+        - com.valvesoftware.Steam     # Steam（沙箱内自带 32 位运行库）
+        - com.usebottles.bottles      # Bottles（管理独立老游戏与修改器容器）
+        - com.github.tchx84.Flatseal  # Flatpak 权限管理器
 
   # 5. 镜像安全签名
   - type: signing
