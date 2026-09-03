@@ -1,45 +1,57 @@
----
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
-# image will be published to ghcr.io/<user>/<name>
-name: template
-# description will be included in the image's metadata
-description: This is my personal OS image.
+name: my-aurora-custom
+description: 个人定制纯净工作站 (VSCode RPM / 按需Libvirt / Rime / Waydroid / 外部存储工具 / Flatpak游戏环境)
+base-image: ghcr.io/ublue-os/aurora-nvidia-open
+image-version: latest
 
-# the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/ublue-os/silverblue-main
-image-version: latest # You can pin to a specific version of Fedora as well
-
-# module configuration, executed in order
-# you can include multiple instances of the same module
 modules:
-  - type: files
-    files:
-      - source: system
-        destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
-
-  - type: dnf
+  # 1. 声明第三方源与系统底层 RPM 包
+  - type: rpm-ostree
     repos:
-      copr:
-        - atim/starship
+      - https://packages.microsoft.com/yumrepos/vscode/config.repo
     install:
-      packages:
-        - micro
-        - starship
-    remove:
-      packages:
-        # example: removing firefox (in favor of the flatpak)
-        # "firefox" is the main package, "firefox-langpacks" is a dependency
-        - firefox
-        - firefox-langpacks # also remove firefox dependency (not required for all packages, this is a special case)
+      # 原生开发工具（RPM 安装以直接与宿主机编译工具链和 Git 集成）
+      - code
+      # KVM / QEMU / Libvirt 虚拟化套件
+      - qemu-kvm
+      - libvirt
+      - libvirt-daemon-kvm
+      - virt-manager
+      - virt-install
+      - edk2-ovmf
+      - bridge-utils
+      # 中文输入法组件（补充 Rime 引擎及词库数据）
+      - fcitx5-rime
+      - rime-data
+      # 外部文件系统与 Btrfs 维护工具
+      - ntfs-3g
+      - dosfstools
+      - exfatprogs
+      - compsize
+      # Waydroid 容器与轻量合成器
+      - waydroid
+      - cage
+      - wlr-randr
+      # 游戏性能调度
+      - gamemode
 
+  # 2. 系统服务状态调优
+  - type: systemd
+    system:
+      enabled:
+        - libvirtd.socket            # 虚拟化按需 Socket 监听，启动虚拟机时自动拉起
+        - gamemoded.service
+      disabled:
+        - libvirtd.service           # 禁用虚拟化全量服务常驻
+        - waydroid-container.service # 禁用 Waydroid 容器开机常驻，按需启动
+
+  # 3. 预装沙箱化 Flatpak 应用
   - type: default-flatpaks
-    configurations:
-      - notify: true # Send notification after install/uninstall is finished (true/false)
-        scope: system
-        # If no repo information is specified, Flathub will be used by default
-        install: # system flatpaks we want all users to have and not remove
-          - org.mozilla.firefox
-          - org.gnome.Loupe
-      - scope: user # Also add Flathub user repo, but no user packages
+    system:
+      install:
+        - com.valvesoftware.Steam     # Steam（沙箱内自带 32 位运行库）
+        - com.usebottles.bottles      # Bottles（管理独立老游戏与修改器容器）
+        - com.github.tchx84.Flatseal  # Flatpak 权限管理器
 
-  - type: signing # this sets up the proper policy & signing files for signed images to work fully
+  # 4. 镜像安全签名
+  - type: signing
