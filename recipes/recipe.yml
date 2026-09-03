@@ -44,7 +44,6 @@ modules:
     system:
       enabled:
         - libvirtd.socket            # 虚拟化按需 Socket 监听，启动虚拟机时自动拉起
-        - gamemoded.service
       disabled:
         - libvirtd.service           # 禁用虚拟化全量服务开机常驻
         - waydroid-container.service # 禁用 Waydroid 容器开机常驻，按需启动
