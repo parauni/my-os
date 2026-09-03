@@ -5,7 +5,7 @@ base-image: ghcr.io/ublue-os/aurora-nvidia-open
 image-version: latest
 
 modules:
-  # 1. 独立安装第三方源软件：VS Code (显式导入微软官方 GPG 密钥以通过安全校验)
+  # 1. 预先配置微软官方 VS Code 源与 GPG 密钥
   - type: script
     snippets:
       - |
@@ -14,36 +14,38 @@ modules:
         [code]
         name=Visual Studio Code
         baseurl=https://packages.microsoft.com/yumrepos/vscode
-        enabled=0
+        enabled=1
         gpgcheck=1
         gpgkey=https://packages.microsoft.com/keys/microsoft.asc
         EOF
-        dnf5 -y install --enablerepo=code code
 
-  # 2. 安装 Fedora 官方源系统底层 RPM 包
-  - type: rpm-ostree
+  # 2. 官方标准 dnf 模块声明安装所有 RPM 包
+  - type: dnf
     install:
-      # KVM / QEMU / Libvirt 虚拟化套件（现代系统已由内核与 NetworkManager 原生接管网桥，无需废弃的 bridge-utils）
-      - qemu-kvm
-      - libvirt
-      - libvirt-daemon-kvm
-      - virt-manager
-      - virt-install
-      - edk2-ovmf
-      # 中文输入法组件（补充 Rime 引擎及词库数据）
-      - fcitx5-rime
-      - rime-data
-      # 外部文件系统与 Btrfs 维护工具
-      - ntfs-3g
-      - dosfstools
-      - exfatprogs
-      - compsize
-      # Waydroid 容器与轻量合成器（Fedora 官方原生收录）
-      - waydroid
-      - cage
-      - wlr-randr
-      # 游戏性能调度
-      - gamemode
+      packages:
+        # 原生开发工具
+        - code
+        # KVM / QEMU / Libvirt 虚拟化套件
+        - qemu-kvm
+        - libvirt
+        - libvirt-daemon-kvm
+        - virt-manager
+        - virt-install
+        - edk2-ovmf
+        # 中文输入法组件
+        - fcitx5-rime
+        - rime-data
+        # 外部文件系统与 Btrfs 维护工具
+        - ntfs-3g
+        - dosfstools
+        - exfatprogs
+        - compsize
+        # Waydroid 容器与轻量合成器 (Fedora 官方主仓库原生提供)
+        - waydroid
+        - cage
+        - wlr-randr
+        # 游戏性能调度
+        - gamemode
 
   # 3. 系统服务状态调优
   - type: systemd
@@ -52,16 +54,17 @@ modules:
         - libvirtd.socket            # 虚拟化按需 Socket 监听，启动虚拟机时自动拉起
         - gamemoded.service
       disabled:
-        - libvirtd.service           # 禁用虚拟化全量服务常驻
+        - libvirtd.service           # 禁用虚拟化全量服务开机常驻
         - waydroid-container.service # 禁用 Waydroid 容器开机常驻，按需启动
 
-  # 4. 预装沙箱化 Flatpak 应用
+  # 4. 预装沙箱化 Flatpak 应用 (采用官方标准结构)
   - type: default-flatpaks
-    system:
-      install:
-        - com.valvesoftware.Steam     # Steam（沙箱内自带 32 位运行库）
-        - com.usebottles.bottles      # Bottles（管理独立老游戏与修改器容器）
-        - com.github.tchx84.Flatseal  # Flatpak 权限管理器
+    configurations:
+      - scope: system
+        install:
+          - com.valvesoftware.Steam     # Steam（沙箱内自带 32 位运行库）
+          - com.usebottles.bottles      # Bottles（管理独立老游戏与修改器容器）
+          - com.github.tchx84.Flatseal  # Flatpak 权限管理器
 
   # 5. 镜像安全签名
   - type: signing
