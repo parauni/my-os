@@ -38,6 +38,8 @@ modules:
         - waydroid
         - cage
         - wlr-randr
+        # mpv播放器
+        - mpv
 
   # 3. 系统服务状态调优
   - type: systemd
