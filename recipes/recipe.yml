@@ -34,8 +34,8 @@ modules:
         - edk2-ovmf
         # 中文输入法组件 (自动拉取 Fedora 下所有 Rime 基础依赖)
         - fcitx5-rime
-        - librime-plugin-lua # 提供 Lua 脚本引擎支持
-        - librime-plugin-octagram # 提供 Octagram 语法/语言模型支持，驱动大模型与语言模型预测。
+        - librime-lua # 提供 Lua 脚本引擎支持
+        - librime-octagram # 提供 Octagram 语法/语言模型支持，驱动大模型与语言模型预测。
         # Waydroid 容器与轻量合成器
         - waydroid
         - cage
