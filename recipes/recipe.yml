@@ -5,26 +5,20 @@ base-image: ghcr.io/ublue-os/aurora-nvidia-open
 image-version: latest
 
 modules:
-  # 1. 预先配置微软官方 VS Code 源与 GPG 密钥
-  - type: script
-    snippets:
-      - |
-        rpm --import https://packages.microsoft.com/keys/microsoft.asc
-        tee /etc/yum.repos.d/vscode.repo <<'EOF'
-        [code]
-        name=Visual Studio Code
-        baseurl=https://packages.microsoft.com/yumrepos/vscode
-        enabled=1
-        gpgcheck=1
-        gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-        EOF
-
-  # 2. 官方标准 dnf 模块声明安装 RPM 包（已移除 Debian 专属包名及基础镜像已内置的包）
   - type: dnf
+    repos:
+      files:
+        - vscode.repo
+        - kopia.repo
+      keys:
+        - https://packages.microsoft.com/keys/microsoft.asc
+        - https://kopia.io/signing-key
     install:
       packages:
         # 原生开发工具
         - code
+        - kopia
+        - kopia-ui
         # KVM / QEMU / Libvirt 虚拟化套件
         - qemu-kvm
         - libvirt
