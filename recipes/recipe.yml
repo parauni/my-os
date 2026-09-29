@@ -38,6 +38,10 @@ modules:
         - mpv
         # abraunegg/onedrive 开源的Linux OneDrive cli客户端
         - onedrive
+    remove:
+      auto-remove: false
+      packages:
+        - ntfs-3g
 
   # 3. 系统服务状态调优
   - type: systemd
