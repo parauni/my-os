@@ -17,6 +17,7 @@ modules:
       packages:
         # 原生开发工具
         - code
+        - bfs
         - kopia
         - kopia-ui
         # KVM / QEMU / Libvirt 虚拟化套件
