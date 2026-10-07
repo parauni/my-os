@@ -39,11 +39,8 @@ modules:
         - mpv
         # abraunegg/onedrive 开源的Linux OneDrive cli客户端
         - onedrive
-        # 为指纹驱动提供依赖.core和imgproc在aurora已经存在,但是显式列出更稳妥
-        - opencv-core
-        - opencv-imgproc
+        # 为指纹驱动提供依赖.
         - opencv-features2d
-        - opencv-stitching
     remove:
       auto-remove: false
       packages:
