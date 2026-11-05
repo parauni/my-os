@@ -16,7 +16,7 @@ modules:
     install:
       packages:
         # 原生开发工具
-        - code
+        # - code  # 改用brew安装
         - bfs
         - kopia
         - kopia-ui
