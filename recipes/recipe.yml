@@ -2,7 +2,7 @@
 name: my-aurora-custom
 description: 个人定制纯净工作站 (VSCode RPM / 按需Libvirt / Rime / Waydroid / Flatpak游戏环境)
 base-image: ghcr.io/ublue-os/aurora-nvidia-open
-image-version: latest
+image-version: testing
 
 modules:
   - type: dnf
